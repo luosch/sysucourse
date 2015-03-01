@@ -1,6 +1,7 @@
-# coding=utf-8
 # Copyright (c) 2014 lsich.com 罗思成
-import urllib, urllib2, cookielib
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+import cookielib
 import os, sys, time, operator
 from sgmllib import SGMLParser
 

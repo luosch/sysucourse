@@ -1,12 +1,7 @@
-# coding=utf-8
 # Copyright (c) 2014 lsich.com 罗思成
 import os, sys, hashlib, time, re, parse, jwxt, db
 from flask import Flask, request, g, make_response
 from werkzeug.contrib.fixers import ProxyFix
-
-# 设置编码为 gbk
-reload(sys) 
-sys.setdefaultencoding('gbk')
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app)
@@ -27,12 +22,12 @@ courseStartTime = ["nouse", "08:00", "08:55", "09:50", "10:45", "11:40", "12:35"
 courseEndTime = ["nouse", "08:45", "09:40", "10:35", "11:30", "12:25", "13:20", "14:15", "15:10", "16:05", "17:00", "17:55", "18:50", "19:45", "20:40", "21:35"]
 
 # 帮助指令
-welcomeText = u"欢迎关注中大课程助手\n已使用缓存提高速度\n"
-errorText = u"请输入正确的指令\n"
-loginText = u"请输入信息, 格式如下:\n学号 密码\n14441444 23333"
-wrongText = u"学号或密码错误, 请重新设置\n"
-waitText = u"多啦A梦正在开发新的功能\n"
-helpText = u"输入0: 设置您的学号和密码\n输入1-6: 获取星期一至星期六的课程\n输入9: 获取今日课程\n输入233: 未知功能"
+welcomeText = "欢迎关注中大课程助手\n已使用缓存提高速度\n"
+errorText = "请输入正确的指令\n"
+loginText = "请输入信息, 格式如下:\n学号 密码\n14441444 23333"
+wrongText = "学号或密码错误, 请重新设置\n"
+waitText = "多啦A梦正在开发新的功能\n"
+helpText = "输入0: 设置您的学号和密码\n输入1-6: 获取星期一至星期六的课程\n输入9: 获取今日课程\n输入233: 未知功能"
 
 @app.route('/', methods=['GET', 'POST'])
 def weixin():
@@ -132,5 +127,6 @@ def weixin():
         response.content_type = 'application/xml'
         return response
 
+debug=True
 if __name__ == '__main__':
-    app.run(port=8000)
+    app.run(debug=debug, port=8000)

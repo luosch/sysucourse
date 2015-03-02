@@ -1,4 +1,3 @@
-# Copyright (c) 2014 lsich.com 罗思成
 import xml.etree.ElementTree as ET
 import time
 

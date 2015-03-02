@@ -13,10 +13,6 @@ def checkSignature(token, timestamp, nonce, signature):
     tmpStr = reduce(lambda x, y: x + y, sorted([token, timestamp, nonce]))
     return hashlib.sha1(tmpStr).hexdigest() == signature
 
-# 中文转码
-def tran(raw):
-    return raw.decode('gbk').encode('utf-8')
-
 # 课程时间
 courseStartTime = ["nouse", "08:00", "08:55", "09:50", "10:45", "11:40", "12:35", "13:30", "14:25", "15:20", "16:15", "17:10", "18:05", "19:00", "19:55", "20:50"]
 courseEndTime = ["nouse", "08:45", "09:40", "10:35", "11:30", "12:25", "13:20", "14:15", "15:10", "16:05", "17:00", "17:55", "18:50", "19:45", "20:40", "21:35"]
@@ -33,11 +29,11 @@ helpText = "输入0: 设置您的学号和密码\n输入1-6: 获取星期一至�
 def weixin():
     # 验证信息
     if request.method == 'GET':
-
         signature = request.args.get('signature', '')
         timestamp = request.args.get('timestamp', '')
         nonce = request.args.get('nonce', '')
         echostr = request.args.get('echostr', '')
+
         if (signature == '' or timestamp == '' or nonce == '' or echostr == ''):
             return "error"
         else:
@@ -69,6 +65,7 @@ def weixin():
             if (ask == "0"):
                 content = loginText
                 data = parse.str2xml(toUserName, fromUserName, "text", content)
+
             elif (len(ask) == 1 and "1" <= ask <= "6" or ask == "9"):
                 tmp = db.getUser(toUserName)
                 content = wrongText+loginText
@@ -86,21 +83,22 @@ def weixin():
                                 if firstLine:
                                     content += "\n"
                                 firstLine = True
-                                content += tran(item["courseName"]) + "\n"
-                                content += "老师: " + tran(item["teacher"]) + "\n"
+                                content += item["courseName"] + "\n"
+                                content += "老师: " + item["teacher"] + "\n"
                                 content += "时间: " + courseStartTime[item["start"]] + "-"
                                 content += courseEndTime[item["end"]] + "\n"
                                 if item["position"]:
-                                    content += tran(item["position"]) + "\n"
+                                    content += item["position"] + "\n"
                         
                 data = parse.str2xml(toUserName, fromUserName, "text", content)
+
             elif (ask == "233"):
                 data = parse.str2xml(toUserName, fromUserName, "text", waitText)
+
             elif re.match(r"(\d+)(\s)(\w+)", ask):
                 tmp = ask.split(" ")
                 number = tmp[0]
                 passwd = tmp[1]
-                content = u"注册失败"
                 if jwxt.login(number, passwd):
                     exist = False
                     if db.getUser(toUserName):
@@ -108,25 +106,26 @@ def weixin():
                         db.updateUser(toUserName, number, passwd)
                     else:
                         db.createUser(toUserName, number, passwd)
+
                     if db.getUser(toUserName):
                         if exist:
                             content = "修改成功"
                         else:
                             content = "注册成功"
-                
+
                 data = parse.str2xml(toUserName, fromUserName, "text", content)
             else:
                 content = errorText+helpText
                 data = parse.str2xml(toUserName, fromUserName, "text", content)
-        except Exception, e:
-            print e
-            content = "服务器崩溃了，工程师出去泡妞了"
+
+        except Exception as e:
+            content = "工程师出去泡妞了，服务器崩溃了~"
             data = parse.str2xml(toUserName, fromUserName, "text", content)
 
         response = make_response(data)
         response.content_type = 'application/xml'
         return response
 
-debug=True
+debug=False
 if __name__ == '__main__':
     app.run(debug=debug, port=8000)

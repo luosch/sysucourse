@@ -1,105 +1,102 @@
 # Copyright (c) 2014 lsich.com 罗思成
-from urllib.request import Request, urlopen
-from urllib.error import HTTPError
-import cookielib
+import urllib.request, urllib.parse, urllib.error
+import http.cookiejar
+from html.parser import HTMLParser
 import os, sys, time, operator
-from sgmllib import SGMLParser
 
-# 解析HTML文档中的td类
-class listName(SGMLParser):
+class MyHTMLParser(HTMLParser):
     def __init__(self):
-        SGMLParser.__init__(self)
+        HTMLParser.__init__(self)
         self.is_td = False
-        self.tdList = []
-    def start_td(self, attrs):
-        self.is_td = True
-    def end_td(self):
-        self.is_td = False
-    def handle_data(self, text):
-        if self.is_td:
-            self.tdList.append(text)
+        self.data = []
+ 
+    def handle_starttag(self, tag, attrs):
+        if tag == "td":
+            self.is_td = True
+
+    def handle_endtag(self, tag):
+        if tag == "td":
+            self.is_td = False
+
+    def handle_data(self, data):
+        if self.is_td == True:
+            self.data.append(data)
 
 # get the sid
 loginUrl = "http://uems.sysu.edu.cn/elect/login"
 def login(stuNum, stuPasswd):
     try:
         # set cookie
-        cookie = cookielib.CookieJar()
-        cookieProc = urllib2.HTTPCookieProcessor(cookie)
-        opener = urllib2.build_opener(cookieProc)
-        urllib2.install_opener(opener)
+        cookie = http.cookiejar.CookieJar()
+        cookieProc = urllib.request.HTTPCookieProcessor(cookie)
+        # httpHandler = urllib.request.HTTPHandler(debuglevel=1)
+        opener = urllib.request.build_opener(cookieProc)
+        urllib.request.install_opener(opener)
 
         # login
-        user = urllib.urlencode({'username': stuNum, 'password': stuPasswd})
-        req = urllib2.Request(loginUrl, user)
-        res = urllib2.urlopen(req)
+        user = urllib.parse.urlencode({'username': stuNum, 'password': stuPasswd})
+        req = urllib.request.Request(loginUrl, user.encode("utf-8"))
+        res = urllib.request.urlopen(req)
         sid = res.geturl().replace('http://uems.sysu.edu.cn/elect/s/types?sid=', '')
         return sid
 
-    except urllib2.HTTPError, e:
-        return 0
+    except urllib.error.HTTPError as e:
+        print(e)
+        return False
 
 # get the course list
 courseUrl = 'http://uems.sysu.edu.cn/elect/s/courseAll?xnd=%s&xq=%s&sid=%s'
 def getCourseList(sid, number):
-    req = urllib2.Request(courseUrl % ("2014-2015", "2", sid))
-    res = urllib2.urlopen(req)
-    content = res.read()
+    req = urllib.request.Request(courseUrl % ("2014-2015", "3", sid))
+    res = urllib.request.urlopen(req)
+    content = res.read().decode("utf-8")
     cut = content.find("toolbarTuitionMessage")
-    data = listName()
-    data.feed(content[cut:].replace("<td class='c'></td>", "<td class='c'>1</td>"))
 
-    if not os.path.isfile("cache/%s.html" % number):
-        print >> open("cache/%s.html" % number, "w"), content[cut:].replace("<td class='c'></td>", "<td class='c'>1</td>")
+    tdList = MyHTMLParser()
+    tdList.feed(content[cut:].replace("<td class='c'></td>", "<td class='c'>1</td>"))
+    tdList.close()
+
+    print(content[cut:].replace("<td class='c'></td>", "<td class='c'>1</td>"), file=open("cache/%s.html" % number, "w", encoding="utf-8"))
 
     courseList = []
-    for index, item in enumerate(data.tdList):
-        courseIndex = index / 14
+    for index, item in enumerate(tdList.data):
+        courseIndex = int(index / 14)
         if index % 14 == 3:
-            courseList.append({'name': item.decode("utf-8").encode("gbk")})
+            courseList.append({'name': item})
         if index % 14 == 7:
-            courseList[courseIndex]['time'] = item.decode("utf-8").encode("gbk")
+            courseList[courseIndex]['time'] = item
         if index % 14 == 9:
-            courseList[courseIndex]['teacher'] = item.decode("utf-8").encode("gbk")
+            courseList[courseIndex]['teacher'] = item
+
     return courseList
 
 # get the course list from cache
 def getCourseListFromCache(rawHtml):
-    data = listName()
-    data.feed(rawHtml)
+    tdList = MyHTMLParser()
+    tdList.feed(rawHtml)
+    tdList.close()
+
     courseList = []
-    for index, item in enumerate(data.tdList):
-        courseIndex = index / 14
+    for index, item in enumerate(tdList.data):
+        courseIndex = int(index / 14)
         if index % 14 == 3:
-            courseList.append({'name': item.decode("utf-8").encode("gbk")})
+            courseList.append({'name': item})
         if index % 14 == 7:
-            courseList[courseIndex]['time'] = item.decode("utf-8").encode("gbk")
+            courseList[courseIndex]['time'] = item
         if index % 14 == 9:
-            courseList[courseIndex]['teacher'] = item.decode("utf-8").encode("gbk")
+            courseList[courseIndex]['teacher'] = item
+
     return courseList
 
 # get the courses on exact day
-weekDay = \
-    [
-        "星期日".decode("utf-8").encode("gbk"),
-        "星期一".decode("utf-8").encode("gbk"),
-        "星期二".decode("utf-8").encode("gbk"),
-        "星期三".decode("utf-8").encode("gbk"),
-        "星期四".decode("utf-8").encode("gbk"),
-        "星期五".decode("utf-8").encode("gbk"),
-        "星期六".decode("utf-8").encode("gbk")
-    ]
-
-jie = "节".decode("utf-8").encode("gbk")
-dun = "：".decode("utf-8").encode("gbk")
-
+weekDay = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
 def getCourseByDay(courseList, day):
     dayList = []
-
     for item in courseList:
         if item['time'].find(weekDay[day]) != -1:
-            tmp = item["time"][6:item["time"].find(jie)].replace(" ", "").split("-")
-            pos = item["time"][item["time"].find(jie)+2:].replace(":", "").replace("/", "").replace(dun, "")
+            tmp = item["time"][4:item["time"].find("节")].replace(" ", "").split("-")
+            pos = item["time"][item["time"].find("节")+1:].replace(":", "").replace("/", "").replace("：", "")
+
             if (pos[0] == '('):
                 position = None
             else:
@@ -113,7 +110,7 @@ def getCourseByDay(courseList, day):
                 "position": position,
             })
 
-    return sorted(dayList, key=lambda x : x["start"])
+    return sorted(dayList, key = lambda x : x["start"])
 
 # 外部接口
 def courseListOnDay(number, passwd, day):
@@ -123,6 +120,7 @@ def courseListOnDay(number, passwd, day):
     else:
         sid = login(number, passwd)
         if sid == 0:
-            return 0
+            return False
         else:
             return getCourseByDay(getCourseList(sid, number), day)
+

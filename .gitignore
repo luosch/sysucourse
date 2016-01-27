@@ -19,8 +19,5 @@ upload.sh
 parse.py
 app.zip
 
-# config
-config.py
-
 # idea
 .idea/

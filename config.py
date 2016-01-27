@@ -12,7 +12,7 @@ CURRENT_XND = '2015-2016'
 CURRENT_XQ = '3'
 
 # command introduction
-WELCOME_TEXT = u'欢迎关注中大课程助手\n'
+WELCOME_TEXT = u'感谢您的关注\n'
 ERROR_TEXT = u'操作失败, 可能是服务器崩溃或者密码错误\n'
 LOGIN_TEXT = u'请输入信息, 格式如下:\n学号#密码\n14441444#23333'
 WRONG_TEXT = u'学号或密码错误, 请重新设置\n'

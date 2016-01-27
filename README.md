@@ -1,4 +1,11 @@
-##中山大学课程助手
-这是一个给中山大学的同学查询课程的微信订阅号
+##SYSU COURSE HELPER
+sysu course helper, a weixin public account, which helps student get their course, score, gpa and credit on weixin.
 
-![](http://lsich.com/resource/14.jpg)
+##TODO
+* ~~construct a design~~ (done 2016/1/22)
+* ~~crack CAPTCHA~~ (done 2016/1/25)
+* ~~design a new logo~~ (done 2016/1/27)
+* use memcached to speed up
+
+##QRCODE
+todo

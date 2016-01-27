@@ -1,3 +1,26 @@
-fuck.txt
-cache
-user
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+
+# OSX noises
+.DS_Store
+
+# draft
+test.txt
+urlRecord.txt
+
+# old
+cache/
+user/
+sysucourse.py
+test.py
+upload.sh
+parse.py
+app.zip
+
+# config
+config.py
+
+# idea
+.idea/

@@ -39,7 +39,7 @@ class Jwxt:
             headers={'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36'}
         )
         self.cookies = {'JSESSIONID': req.cookies['JSESSIONID']}
-        soup = BeautifulSoup(req.content.decode('utf-8'), 'html.parser')
+        soup = BeautifulSoup(req.content.decode('utf-8'), 'lxml')
         rno = soup.find(id='rno')['value']
 
         # get verify_code using pytesseract
@@ -65,7 +65,7 @@ class Jwxt:
             cookies=self.cookies
         )
 
-        soup = BeautifulSoup(req.content.decode('utf-8'), 'html.parser')
+        soup = BeautifulSoup(req.content.decode('utf-8'), 'lxml')
 
         if req.status_code == 200:
             text = soup.find('title')
@@ -105,7 +105,7 @@ class Jwxt:
         )
         res = demjson.decode(req.content.decode('utf-8'))
         raw_html = res['body']['parameters']['rs']
-        soup = BeautifulSoup(raw_html.encode('utf-8'))
+        soup = BeautifulSoup(raw_html.encode('utf-8'), 'lxml')
         course_list = []
         for tr in soup.find_all('tr'):
             for index, td in enumerate(tr.find_all('td')):
